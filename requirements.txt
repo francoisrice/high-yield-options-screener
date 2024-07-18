@@ -1,0 +1,5 @@
+openbb
+openbb-cboe
+numpy
+scipy
+tqdm

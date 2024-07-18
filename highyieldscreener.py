@@ -3,6 +3,7 @@
 
 import os
 import urllib.request
+from tqdm import tqdm
 from openbb import obb
 from priceprediction import PricePredictor
 
@@ -39,7 +40,7 @@ with open('files/nasdaqlisted.txt') as nasdaqListed:
     nasdaq = nasdaqListed.read().splitlines()
 
     # Add progress bar
-    for symbolLine in nasdaq:
+    for symbolLine in tqdm(nasdaq):
     
         symbolLineData = symbolLine.split('|')
         if symbolLineData[3] == 'N': # Filter out Test Stocks
@@ -54,7 +55,7 @@ with open('files/nasdaqlisted.txt') as nasdaqListed:
 
 with open('files/otherlisted.txt') as otherListed:
     other = otherListed.read().splitlines()
-    for symbolLine in other:
+    for symbolLine in tqdm(other):
         symbolLineData = symbolLine.split('|')
         if symbolLineData[6] == 'N': # Filter out Test Issues
             try:
