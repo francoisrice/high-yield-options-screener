@@ -102,7 +102,7 @@ class PricePredictor:
 
         interestRate = 0.05
 
-        meanEndPrice = self.currentPrice * ((1 + interestRate) ** (daysToExpiration / 365) * np.exp(self.drift * daysToExpiration))
+        meanEndPrice = float(self.currentPrice) * ((1 + interestRate) ** (int(daysToExpiration) / 365) * np.exp(self.drift * int(daysToExpiration)))
         periodVol = self.dailyVolatility * np.sqrt(daysToExpiration)
 
         zScoreB = scipy.stats.norm.ppf(probability)
