@@ -24,8 +24,11 @@ def calculateShortPutYield(symbol, funds, predictionPrice):
     # Calculate the yield of each contract
     contracts = []
     for rowNumber in range(len(symbolData)):
-        if symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"]) > 0.0:
+        if symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"]) > 0.001:
+            # symbolStrikeProbability = pp.calculate_price_probability(symbol, symbolData.iloc[rowNumber]["strike"], daysToExp)
+            # # ?? - obb.derivatives.options.probability(symbol=symbol, strike=symbolData.iloc[rowNumber]["strike"], dte=symbolData.iloc[rowNumber]["dte"], option_type='put')
             contracts.append([symbolData.iloc[rowNumber]["contract_symbol"], "DTE: "+str(symbolData.iloc[rowNumber]["dte"]), "Strike Price: "+str(symbolData.iloc[rowNumber]["strike"]), "Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])), "Size Available: "+str(symbolData.iloc[rowNumber]["bid_size"]) ])
+            # contracts.append([symbolData.iloc[rowNumber]["contract_symbol"], "DTE: "+str(symbolData.iloc[rowNumber]["dte"]), "Strike Price: "+str(symbolData.iloc[rowNumber]["strike"]), "Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])), "Likely Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])*(1-symbolStrikeProbability)) , "Size Available: "+str(symbolData.iloc[rowNumber]["bid_size"]) ])
     
     return contracts
 
@@ -75,7 +78,7 @@ def create_sorted_yield_list(funds, probability, daysToExp):
     # Sort contracts by descending yield
     contracts.sort(key=lambda x:x[3],reverse=True)
 
-    with open(f'files/contracts_{date.today()}.txt', 'w') as f:
+    with open(f'files/contracts_{date.today()}_{str(funds)}_{str(probability)}_{str(daysToExp)}.txt', 'w') as f:
         for contract in contracts:
             f.write(f"{contract}\n")
 
