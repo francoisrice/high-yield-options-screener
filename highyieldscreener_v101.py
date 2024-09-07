@@ -14,6 +14,8 @@ from priceprediction import PricePredictor
 
 obb.account.login(pat=os.environ['OPENBB_KEY'])
 
+pp = PricePredictor()
+
 def calculateShortPutYield(symbol, funds, predictionPrice):
     # Get the stocks option chain
     symbolData = obb.derivatives.options.chains(symbol=symbol, provider='cboe').to_df()
@@ -25,16 +27,18 @@ def calculateShortPutYield(symbol, funds, predictionPrice):
     contracts = []
     for rowNumber in range(len(symbolData)):
         if symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"]) > 0.001:
+            if os.environ["LIKELY_YIELD"]:
+                probability = pp.
+                contracts.append([symbolData.iloc[rowNumber]["contract_symbol"], "DTE: "+str(symbolData.iloc[rowNumber]["dte"]), "Strike Price: "+str(symbolData.iloc[rowNumber]["strike"]), "Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])), "Probability: "+str(1-probability), "Likely Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])*(1-probability)), "Size Available: "+str(symbolData.iloc[rowNumber]["bid_size"]) ])
+            else:
             # symbolStrikeProbability = pp.calculate_price_probability(symbol, symbolData.iloc[rowNumber]["strike"], daysToExp)
             # # ?? - obb.derivatives.options.probability(symbol=symbol, strike=symbolData.iloc[rowNumber]["strike"], dte=symbolData.iloc[rowNumber]["dte"], option_type='put')
-            contracts.append([symbolData.iloc[rowNumber]["contract_symbol"], "DTE: "+str(symbolData.iloc[rowNumber]["dte"]), "Strike Price: "+str(symbolData.iloc[rowNumber]["strike"]), "Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])), "Size Available: "+str(symbolData.iloc[rowNumber]["bid_size"]) ])
+                contracts.append([symbolData.iloc[rowNumber]["contract_symbol"], "DTE: "+str(symbolData.iloc[rowNumber]["dte"]), "Strike Price: "+str(symbolData.iloc[rowNumber]["strike"]), "Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])), "Size Available: "+str(symbolData.iloc[rowNumber]["bid_size"]) ])
             # contracts.append([symbolData.iloc[rowNumber]["contract_symbol"], "DTE: "+str(symbolData.iloc[rowNumber]["dte"]), "Strike Price: "+str(symbolData.iloc[rowNumber]["strike"]), "Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])), "Likely Yield: "+str(symbolData.iloc[rowNumber]["bid"]/(symbolData.iloc[rowNumber]["strike"])*(1-symbolStrikeProbability)) , "Size Available: "+str(symbolData.iloc[rowNumber]["bid_size"]) ])
     
     return contracts
 
 def create_sorted_yield_list(funds, probability, daysToExp):
-    pp = PricePredictor()
-
     # Refresh list of stocks
     urllib.request.urlretrieve('ftp://ftp.nasdaqtrader.com/SymbolDirectory/nasdaqlisted.txt', 'files/nasdaqlisted.txt')
     urllib.request.urlretrieve('ftp://ftp.nasdaqtrader.com/SymbolDirectory/otherlisted.txt', 'files/otherlisted.txt')
@@ -49,7 +53,7 @@ def create_sorted_yield_list(funds, probability, daysToExp):
         # nasdaq = ['MARA','NIO','BYND','SOFI','CLSK']
         #####
 
-        for symbolLine in tqdm(nasdaq): #4796
+        for symbolLine in tqdm(nasdaq):
         
             symbolLineData = symbolLine.split('|')
             if symbolLineData[3] == 'N': # Filter out Test Stocks
@@ -62,7 +66,7 @@ def create_sorted_yield_list(funds, probability, daysToExp):
                     continue
             print("Processed: "+symbolLineData[0])
 
-    with open('files/otherlisted.txt') as otherListed: #6251
+    with open('files/otherlisted.txt') as otherListed:
         other = otherListed.read().splitlines()
         for symbolLine in tqdm(other):
             symbolLineData = symbolLine.split('|')
@@ -76,7 +80,10 @@ def create_sorted_yield_list(funds, probability, daysToExp):
             print("Processed: "+symbolLineData[0])
 
     # Sort contracts by descending yield
-    contracts.sort(key=lambda x:x[3],reverse=True)
+    if os.environ["LIKELY_YIELD"]:
+        contracts.sort(key=lambda x:x[5],reverse=True)
+    else:
+        contracts.sort(key=lambda x:x[3],reverse=True)
 
     with open(f'files/contracts_{date.today()}_{str(funds)}_{str(probability)}_{str(daysToExp)}.txt', 'w') as f:
         for contract in contracts:
